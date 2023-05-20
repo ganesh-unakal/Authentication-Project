@@ -1,8 +1,12 @@
-import { useState, useRef } from "react";
-
+import { useState, useRef, useContext } from "react";
+import { useHistory } from "react-router-dom";
 import classes from "./AuthForm.module.css";
+import AuthConetxt from "../../store/Auth-context";
 
 const AuthForm = () => {
+  const AuthCntx = useContext(AuthConetxt);
+  const history = useHistory;
+
   const emailInputRef = useRef();
   const passwordInputref = useRef();
 
@@ -22,26 +26,27 @@ const AuthForm = () => {
     //optional : add validation
     setIsLoading(true); // y here means we r sending the request
     let url;
-    
+
     if (isLogin) {
-      url ='https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBBZ2InOGQ7wCS3rgt77JkpEnMz4suNWrE'
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBBZ2InOGQ7wCS3rgt77JkpEnMz4suNWrE";
     } else {
-      url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBBZ2InOGQ7wCS3rgt77JkpEnMz4suNWrE'
-       }
-       fetch(
-        url,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email: enteredEmail,
-            password: enteredPassword,
-            returnSecureToken: true,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      ).then((res) => {
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBBZ2InOGQ7wCS3rgt77JkpEnMz4suNWrE";
+    }
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        email: enteredEmail,
+        password: enteredPassword,
+        returnSecureToken: true,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        console.log(res); 
         setIsLoading(false);
         if (res.ok) {
           return res.json();
@@ -54,17 +59,21 @@ const AuthForm = () => {
             //   errorMessage = data.error.message;
             // }
             console.log(data);
-            
+
             throw new Error(errorMessage);
           });
         }
       })
-      .then((data) =>{
-        console.log(data)
+
+      .then((data) => {
+        console.log(data); //here we get result & if(res.ok) means it will display the data otherwise undefined
+        AuthCntx.login(data.idToken);
+        history.replace("/");
+       
       })
-      .catch((err)=> {
+      .catch((err) => {
         alert(err.message);
-      })
+      });
   };
 
   return (
